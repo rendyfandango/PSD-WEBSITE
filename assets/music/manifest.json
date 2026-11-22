@@ -1,0 +1,76 @@
+{
+  "tracks": [
+    {
+      "id": "lofi-night",
+      "title": "Night Study",
+      "artist": "PSD Demo Studio",
+      "genre": "Lo-fi",
+      "bpm": 78,
+      "file": "assets/music/lofi-night.wav",
+      "cover": "cover-lofi.svg",
+      "description": "Chord pad hangat, drum santai, dan tekstur vinyl untuk analisis energi rendah.",
+      "duration": 25.415,
+      "sampleRate": 44100
+    },
+    {
+      "id": "pop-sunrise",
+      "title": "Sunrise Avenue",
+      "artist": "PSD Demo Studio",
+      "genre": "Pop",
+      "bpm": 120,
+      "file": "assets/music/pop-sunrise.wav",
+      "cover": "cover-pop.svg",
+      "description": "Progresi pop I-V-vi-IV dengan arpeggio cerah dan ritme 4/4 yang jelas.",
+      "duration": 16.7,
+      "sampleRate": 44100
+    },
+    {
+      "id": "edm-pulse",
+      "title": "Neon Pulse",
+      "artist": "PSD Demo Studio",
+      "genre": "EDM",
+      "bpm": 128,
+      "file": "assets/music/edm-pulse.wav",
+      "cover": "cover-edm.svg",
+      "description": "Four-on-the-floor, bass kuat, dan saw chord untuk menguji energi bass.",
+      "duration": 15.7,
+      "sampleRate": 44100
+    },
+    {
+      "id": "rock-drive",
+      "title": "Open Road",
+      "artist": "PSD Demo Studio",
+      "genre": "Rock",
+      "bpm": 110,
+      "file": "assets/music/rock-drive.wav",
+      "cover": "cover-rock.svg",
+      "description": "Power chord dan drum padat dengan komponen mid/high yang dominan.",
+      "duration": 18.255,
+      "sampleRate": 44100
+    },
+    {
+      "id": "classical-dawn",
+      "title": "Morning Garden",
+      "artist": "PSD Demo Studio",
+      "genre": "Classical",
+      "bpm": 84,
+      "file": "assets/music/classical-dawn.wav",
+      "cover": "cover-classical.svg",
+      "description": "Arpeggio piano sintetis dengan dinamika lebar dan rentang frekuensi luas.",
+      "duration": 24.057,
+      "sampleRate": 44100
+    },
+    {
+      "id": "jazz-blue",
+      "title": "Blue Corner",
+      "artist": "PSD Demo Studio",
+      "genre": "Jazz",
+      "bpm": 96,
+      "file": "assets/music/jazz-blue.wav",
+      "cover": "cover-jazz.svg",
+      "description": "Walking bass, comping akor, dan ride cymbal dengan swing ringan.",
+      "duration": 20.8,
+      "sampleRate": 44100
+    }
+  ]
+}

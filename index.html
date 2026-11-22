@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Music Analyzer v2</title>
+  <meta name="description" content="Upload musik sendiri, analisis BPM, beat, RMS, dan spektrum, lalu bandingkan filter FIR dan IIR.">
+  <link rel="icon" href="assets/images/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css?v=5">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#" id="brand-link">
+        <span class="brand-mark">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><g fill="currentColor"><rect x="8" y="28" width="7" height="12" rx="3"/><rect x="20" y="18" width="7" height="32" rx="3"/><rect x="32" y="10" width="7" height="46" rx="3"/><rect x="44" y="22" width="7" height="24" rx="3"/></g></svg>
+        </span>
+        <span class="brand-text">MusicAnalyzer<small>v2.3</small></span>
+      </a>
+
+      <nav class="nav" id="main-nav" aria-label="Navigasi utama">
+        <button class="nav-item active" type="button" data-view="library">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="12" r="2"/><circle cx="15" cy="18" r="2"/></svg>
+          <span>Library</span>
+        </button>
+        <button class="nav-item" type="button" data-view="analyze">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2.5-7 4 14 2.5-7H21"/></svg>
+          <span>Analyze</span>
+        </button>
+        <button class="nav-item" type="button" data-view="filter">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          <span>Filter</span>
+        </button>
+        <button class="nav-item" type="button" data-view="compare">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20v-3"/></svg>
+          <span>Compare</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <button class="btn btn-primary btn-block" type="button" id="sidebar-upload">Upload musik</button>
+        <p>File diproses lokal di browser.</p>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="now-playing" id="top-track">
+          <div class="now-cover" id="top-cover">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+          </div>
+          <div class="now-meta">
+            <strong id="top-title">Belum ada lagu</strong>
+            <span id="top-sub">Pilih dari Library</span>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" type="button" id="top-play" aria-label="Play" disabled>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <div class="top-progress" id="top-progress" role="slider" tabindex="0" aria-label="Posisi pemutaran"><div id="top-bar"></div></div>
+          <span class="time" id="top-time">0:00 / 0:00</span>
+          <button class="btn btn-ghost btn-small" type="button" id="top-upload">Upload</button>
+        </div>
+      </header>
+
+      <main class="views">
+        <section class="view active" id="view-library" aria-labelledby="library-title">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">Library</p>
+              <h1 id="library-title">Musik kamu</h1>
+              <p class="sub">Upload lagu sendiri atau pakai track demo.</p>
+            </div>
+            <button class="btn btn-primary" type="button" id="library-upload">Upload musik</button>
+          </div>
+
+          <div class="library-top">
+            <div class="dropzone" id="dropzone">
+              <div class="drop-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M5 16v3h14v-3"/></svg>
+              </div>
+              <strong>Tarik file audio ke sini</strong>
+              <span>atau pilih file dari perangkat</span>
+              <button class="btn btn-ghost btn-small" type="button" id="dropzone-pick">Pilih file</button>
+              <small>MP3, WAV, M4A, OGG, FLAC · maks 80 MB · diproses lokal</small>
+            </div>
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Upload kamu</h2>
+                <span class="chip" id="upload-count">0</span>
+              </div>
+              <div class="upload-list" id="upload-list">
+                <div class="empty">Belum ada file upload.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-head">
+            <h2>Demo track</h2>
+            <span class="small muted" id="demo-count"></span>
+          </div>
+          <div class="demo-grid" id="demo-list"></div>
+        </section>
+
+        <section class="view" id="view-analyze" aria-labelledby="analyze-title">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">Analyze</p>
+              <h1 id="analyze-title">Belum ada lagu</h1>
+              <p class="sub" id="analyze-sub">Pilih lagu dari Library.</p>
+            </div>
+            <div class="head-actions">
+              <button class="btn btn-ghost btn-small" type="button" id="analyze-play" disabled>Play</button>
+              <button class="btn btn-ghost btn-small hidden" type="button" id="analyze-play-filtered">Putar hasil filter</button>
+              <button class="btn btn-ghost btn-small hidden" type="button" id="analyze-reset-filter">Reset filter</button>
+              <button class="btn btn-ghost btn-small" type="button" id="analyze-advanced">Advanced</button>
+            </div>
+          </div>
+
+          <div class="empty-state" id="analyze-empty">Pilih lagu untuk mulai analisis.</div>
+
+          <div class="hidden" id="analyze-content">
+            <div class="chip-row" id="analyze-badges"></div>
+
+            <div class="card ab-card hidden" id="ab-card">
+              <div class="ab-head">
+                <div>
+                  <h2>Dengar bedanya</h2>
+                  <p class="small muted" id="ab-note">Original dan hasil filter, posisi sama.</p>
+                </div>
+                <button class="btn btn-small btn-primary" type="button" id="ab-toggle">A/B 4 detik</button>
+              </div>
+              <div class="ab-player" id="ab-original-row">
+                <button class="icon-btn ab-play" type="button" id="ab-original-play" aria-label="Putar original"></button>
+                <div class="ab-info"><strong>Original</strong><span id="ab-original-time">0:00 / 0:00</span></div>
+                <div class="ab-seek" id="ab-original-seek" data-ab-seek="original" role="slider" tabindex="0" aria-label="Posisi original"><div id="ab-original-fill"></div></div>
+              </div>
+              <div class="ab-player" id="ab-filtered-row">
+                <button class="icon-btn ab-play" type="button" id="ab-filtered-play" aria-label="Putar hasil filter"></button>
+                <div class="ab-info"><strong>Hasil filter</strong><span id="ab-filtered-time">0:00 / 0:00</span></div>
+                <div class="ab-seek filtered" id="ab-filtered-seek" data-ab-seek="filtered" role="slider" tabindex="0" aria-label="Posisi hasil filter"><div id="ab-filtered-fill"></div></div>
+              </div>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric"><span>BPM</span><strong id="m-bpm">—</strong><small id="m-bpm-sub"></small></div>
+              <div class="metric"><span>Beat</span><strong id="m-beats">—</strong><small id="m-beats-sub"></small></div>
+              <div class="metric"><span>RMS</span><strong id="m-rms">—</strong><small id="m-rms-sub"></small></div>
+              <div class="metric"><span>Peak</span><strong id="m-peak">—</strong><small id="m-peak-sub"></small></div>
+              <div class="metric"><span>Bass</span><strong id="m-bass">—</strong><small>20–250 Hz</small></div>
+              <div class="metric"><span>Mid</span><strong id="m-mid">—</strong><small>250–4k Hz</small></div>
+              <div class="metric"><span>Treble</span><strong id="m-treble">—</strong><small>4–20k Hz</small></div>
+              <div class="metric"><span>Centroid</span><strong id="m-centroid">—</strong><small id="m-centroid-sub"></small></div>
+            </div>
+
+            <div class="chart-grid">
+              <div class="card chart-card span-2">
+                <div class="card-head"><h2 id="analyze-wave-title">Waveform</h2><span class="hint" id="analyze-wave-hint"></span></div>
+                <canvas id="an-wave" aria-label="Waveform lagu"></canvas>
+              </div>
+              <div class="card chart-card span-2">
+                <div class="card-head"><h2>Spektrum</h2><span class="hint">0–20 kHz</span></div>
+                <canvas id="an-spectrum" aria-label="Spektrum frekuensi"></canvas>
+              </div>
+            </div>
+
+            <div class="advanced hidden" id="analyze-advanced-panel">
+              <div class="chart-grid">
+                <div class="card chart-card span-2">
+                  <div class="card-head"><h2>Spectrogram</h2><span class="hint">detail</span></div>
+                  <canvas id="an-spectrogram" class="tall" aria-label="Spectrogram"></canvas>
+                </div>
+                <div class="card chart-card">
+                  <div class="card-head"><h2>RMS envelope</h2></div>
+                  <canvas id="an-rms" aria-label="RMS envelope"></canvas>
+                </div>
+                <div class="card chart-card">
+                  <div class="card-head"><h2>Energi pita</h2></div>
+                  <canvas id="an-bands" aria-label="Energi pita"></canvas>
+                </div>
+                <div class="card chart-card">
+                  <div class="card-head"><h2>Onset</h2></div>
+                  <canvas id="an-onset" aria-label="Onset strength"></canvas>
+                </div>
+                <div class="card chart-card">
+                  <div class="card-head"><h2>Kandidat tempo</h2></div>
+                  <canvas id="an-acf" aria-label="Kandidat tempo"></canvas>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h2>Detail fitur</h2><span class="hint">original vs filter</span></div>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Metrik</th><th>Original</th><th>Hasil filter</th></tr></thead>
+                    <tbody id="analyze-detail-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-filter" aria-labelledby="filter-title">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">Filter</p>
+              <h1 id="filter-title">Filter digital</h1>
+              <p class="sub">Atur filter lalu terapkan ke lagu aktif.</p>
+            </div>
+            <button class="btn btn-ghost hidden" type="button" id="filter-play" disabled>Putar hasil filter</button>
+            <button class="btn btn-ghost" type="button" id="filter-reset">Reset</button>
+            <button class="btn btn-ghost" type="button" id="filter-apply">Terapkan filter</button>
+            <button class="btn btn-primary" type="button" id="filter-apply-listen">Terapkan &amp; dengar</button>
+          </div>
+
+          <div class="filter-layout">
+            <div class="card filter-controls">
+              <div class="control-label">Engine</div>
+              <div class="segmented" id="filter-engine-seg">
+                <button class="active" type="button" data-engine="fir">FIR</button>
+                <button type="button" data-engine="iir">IIR</button>
+              </div>
+
+              <div class="control-label">Tipe</div>
+              <div class="segmented" id="filter-type-seg">
+                <button class="active" type="button" data-ftype="lowpass">Low-pass</button>
+                <button type="button" data-ftype="highpass">High-pass</button>
+                <button type="button" data-ftype="bandpass">Band-pass</button>
+              </div>
+
+              <div class="field">
+                <label for="filter-cutoff">Cutoff <span id="filter-cutoff-value">1.000 Hz</span></label>
+                <input type="range" id="filter-cutoff" min="20" max="20000" step="10" value="1000">
+              </div>
+              <div class="field hidden" id="filter-cutoff2-field">
+                <label for="filter-cutoff2">Cutoff 2 <span id="filter-cutoff2-value">4.000 Hz</span></label>
+                <input type="range" id="filter-cutoff2" min="20" max="20000" step="10" value="4000">
+              </div>
+              <div class="field">
+                <label for="filter-order"><span id="filter-order-label">Jumlah tap</span> <span id="filter-order-value">101</span></label>
+                <input type="range" id="filter-order" min="11" max="401" step="2" value="101">
+              </div>
+              <div class="field" id="filter-window-field">
+                <label for="filter-window">Window</label>
+                <select id="filter-window">
+                  <option value="hamming" selected>Hamming</option>
+                  <option value="hann">Hann</option>
+                  <option value="blackman">Blackman</option>
+                  <option value="blackman-harris">Blackman-Harris</option>
+                  <option value="kaiser">Kaiser</option>
+                  <option value="rect">Rectangular</option>
+                </select>
+              </div>
+
+              <p class="small muted" id="filter-status">Belum diterapkan ke lagu ini.</p>
+            </div>
+
+            <div class="card chart-card">
+              <div class="card-head"><h2>Respons magnitudo</h2><span class="hint" id="filter-resp-hint"></span></div>
+              <canvas id="filter-response" aria-label="Respons magnitudo filter"></canvas>
+            </div>
+          </div>
+
+          <div class="card detail-card">
+            <button class="detail-toggle" type="button" id="filter-detail-toggle">Detail teknis <span>+</span></button>
+            <div class="hidden" id="filter-detail">
+              <div class="chart-grid">
+                <div class="card chart-card"><div class="card-head"><h2>Fase</h2></div><canvas id="filter-phase" aria-label="Respons fase"></canvas></div>
+                <div class="card chart-card"><div class="card-head"><h2>Group delay</h2></div><canvas id="filter-delay" aria-label="Group delay"></canvas></div>
+                <div class="card chart-card"><div class="card-head"><h2 id="filter-impulse-title">Respons impuls</h2></div><canvas id="filter-impulse" aria-label="Respons impuls"></canvas></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-compare" aria-labelledby="compare-title">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">Compare</p>
+              <h1 id="compare-title">Bandingkan filter</h1>
+              <p class="sub">Original vs FIR vs IIR pada lagu aktif.</p>
+            </div>
+            <div class="head-actions">
+              <button class="btn btn-primary" type="button" id="compare-run">Jalankan</button>
+              <div class="menu-wrap">
+                <button class="btn btn-ghost" type="button" id="compare-export">Unduh laporan</button>
+                <div class="menu hidden" id="export-menu">
+                  <button type="button" data-export="csv">CSV</button>
+                  <button type="button" data-export="json">JSON</button>
+                  <button type="button" data-export="print">Cetak / PDF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card compare-controls">
+            <div class="field">
+              <label for="compare-type">Tipe</label>
+              <select id="compare-type">
+                <option value="lowpass">Low-pass</option>
+                <option value="highpass">High-pass</option>
+                <option value="bandpass">Band-pass</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="compare-cutoff">Cutoff <span id="compare-cutoff-value">1.000 Hz</span></label>
+              <input type="range" id="compare-cutoff" min="20" max="20000" step="10" value="1000">
+            </div>
+            <div class="field hidden" id="compare-cutoff2-field">
+              <label for="compare-cutoff2">Cutoff 2 <span id="compare-cutoff2-value">4.000 Hz</span></label>
+              <input type="range" id="compare-cutoff2" min="20" max="20000" step="10" value="4000">
+            </div>
+            <div class="field">
+              <label for="compare-taps">FIR taps <span id="compare-taps-value">101</span></label>
+              <input type="range" id="compare-taps" min="11" max="401" step="2" value="101">
+            </div>
+            <div class="field">
+              <label for="compare-order">IIR order <span id="compare-order-value">4</span></label>
+              <input type="range" id="compare-order" min="1" max="8" step="1" value="4">
+            </div>
+          </div>
+
+          <div class="empty-state" id="compare-empty">Pilih lagu, atur spesifikasi, lalu jalankan perbandingan.</div>
+
+          <div class="hidden" id="compare-content">
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Parameter</th><th>Original</th><th>FIR</th><th>IIR</th></tr></thead>
+                  <tbody id="compare-body"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="chart-grid">
+              <div class="card chart-card span-2"><div class="card-head"><h2>Respons magnitudo</h2></div><canvas id="compare-response" aria-label="Respons magnitudo FIR dan IIR"></canvas></div>
+              <div class="card chart-card span-2"><div class="card-head"><h2>Waveform</h2></div><canvas id="compare-wave" aria-label="Perbandingan waveform"></canvas></div>
+              <div class="card chart-card"><div class="card-head"><h2>Spektrum</h2></div><canvas id="compare-spectrum" aria-label="Perbandingan spektrum"></canvas></div>
+              <div class="card chart-card"><div class="card-head"><h2>Energi pita</h2></div><canvas id="compare-bands" aria-label="Perbandingan energi pita"></canvas></div>
+            </div>
+            <p class="small muted" id="compare-note"></p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <audio id="audio-el" preload="metadata"></audio>
+  <audio id="filter-audio-el" preload="auto"></audio>
+  <input id="file-input" type="file" accept="audio/*" hidden>
+
+  <div class="loading hidden" id="loading">
+    <div class="loading-box">
+      <span class="spinner"></span>
+      <strong id="loading-text">Memproses…</strong>
+      <small>File tetap di browser.</small>
+    </div>
+  </div>
+  <div class="toast-stack" id="toast-stack"></div>
+
+  <script src="js/dsp-utils.js?v=5"></script>
+  <script src="js/fft.js?v=5"></script>
+  <script src="js/fir-filter.js?v=5"></script>
+  <script src="js/iir-filter.js?v=5"></script>
+  <script src="js/bpm-detection.js?v=5"></script>
+  <script src="js/beat-detection.js?v=5"></script>
+  <script src="js/energy-analysis.js?v=5"></script>
+  <script src="js/audio-processing.js?v=5"></script>
+  <script src="js/visualization.js?v=5"></script>
+  <script src="js/store.js?v=5"></script>
+  <script src="js/player.js?v=5"></script>
+  <script src="js/report.js?v=5"></script>
+  <script src="js/app.js?v=5"></script>
+</body>
+</html>
